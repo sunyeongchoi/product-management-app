@@ -2,7 +2,8 @@ CREATE TABLE manager (
      id INT(11) NOT NULL AUTO_INCREMENT,
      phone VARCHAR(20) NOT NULL,
      password VARCHAR(20) NOT NULL,
-     PRIMARY KEY (id)
+     PRIMARY KEY (id),
+     UNIQUE (phone)
 );
 
 CREATE TABLE product (
