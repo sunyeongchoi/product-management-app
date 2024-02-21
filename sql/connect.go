@@ -60,7 +60,7 @@ func (c *dbConfig) GetDatabase() string {
 func ConnectToDB() {
 	var err error
 	config := newDBConfig()
-	mysqlInfo := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s",
+	mysqlInfo := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&loc=UTC",
 		config.GetUsername(), config.GetPassword(), config.GetHost(), config.GetPort(), config.GetDatabase())
 	DBConn, err = sql.Open("mysql", mysqlInfo)
 	if err != nil {
