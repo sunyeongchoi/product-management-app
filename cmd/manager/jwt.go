@@ -15,6 +15,7 @@ const jwtKey = "example"
 
 func CreateToken(id int, phone string) (token string, err error) {
 	now := time.Now()
+	// TODO: time expiration 입력받도록 변경
 	tokenExpiration := now.Add(time.Duration(50000) * time.Second)
 	claims := &Claims{
 		ID: id,

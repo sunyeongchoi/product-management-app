@@ -3,7 +3,9 @@ package manager
 import (
 	"net/http"
 	"product-management/models"
+	"product-management/sql"
 	managers "product-management/sql/manager"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -15,13 +17,25 @@ func GetManagerAPIManager() *apiManager {
 	return &apiManager{}
 }
 
+var (
+	once         sync.Once
+	managerDBConn *managers.DBManagerService
+)
+
+func getManagerDBConn() *managers.DBManagerService {
+	once.Do(func() {
+		managerDBConn = managers.NewDBManagerService(sql.DBConn)
+	})
+	return managerDBConn
+}
+
 func (m apiManager) SignUp(c *gin.Context) {
 	var manager models.Manager
 	if err := c.ShouldBindJSON(&manager); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
 	// 휴대폰번호 중복체크
-	_, err := managers.Get(manager.Phone)
+	_, err := getManagerDBConn().Get(manager.Phone)
 	if err == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "error",
@@ -40,7 +54,7 @@ func (m apiManager) SignUp(c *gin.Context) {
 	}
 	manager.Password = string(hashedPassword)
 
-	err = managers.SignUp(manager)
+	err = getManagerDBConn().SignUp(manager)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "error",
@@ -59,7 +73,7 @@ func (m apiManager) Login(c *gin.Context) {
 	if err := c.ShouldBindJSON(&managerFromInput); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	managerFromDB, err := managers.Get(managerFromInput.Phone)
+	managerFromDB, err := getManagerDBConn().Get(managerFromInput.Phone)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "error",
