@@ -3,8 +3,10 @@ package product
 import (
 	"net/http"
 	"product-management/models"
+	"product-management/sql"
 	products "product-management/sql/product"
 	"strconv"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,6 +15,18 @@ type apiManager struct{}
 
 func GetProductAPIManager() *apiManager {
 	return &apiManager{}
+}
+
+var (
+	once          sync.Once
+	productDBConn *products.DBProductService
+)
+
+func getProductDBConn() *products.DBProductService {
+	once.Do(func() {
+		productDBConn = products.NewDBProductService(sql.DBConn)
+	})
+	return productDBConn
 }
 
 func (p apiManager) Register(c *gin.Context) {
@@ -26,7 +40,7 @@ func (p apiManager) Register(c *gin.Context) {
 		})
 		return
 	}
-	err := products.Register(product)
+	err := getProductDBConn().Register(product)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "error",
@@ -53,7 +67,7 @@ func (p apiManager) Update(c *gin.Context) {
 	if err := c.ShouldBindJSON(&updateFields); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	err = products.Update(id, updateFields)
+	err = getProductDBConn().Update(id, updateFields)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "error",
@@ -67,6 +81,7 @@ func (p apiManager) Update(c *gin.Context) {
 }
 
 func (p apiManager) List(c *gin.Context) {
+	searchKeyword := c.Query("searchKeyword")
 	cursorStr := c.Query("cursor")
 	limitStr := c.Query("limit")
 	var cursor = 0
@@ -92,7 +107,8 @@ func (p apiManager) List(c *gin.Context) {
 			return
 		}
 	}
-	productList, err := products.List(cursor, limit)
+	// Like 검색
+	productList, err := getProductDBConn().List(searchKeyword, cursor, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "error",
@@ -100,6 +116,8 @@ func (p apiManager) List(c *gin.Context) {
 		})
 		return
 	}
+	// TODO: 초성 검색
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "ok",
 		"data":    productList,
@@ -108,7 +126,7 @@ func (p apiManager) List(c *gin.Context) {
 
 func (p apiManager) Get(c *gin.Context) {
 	id := c.Param("id")
-	product, err := products.Get(id)
+	product, err := getProductDBConn().Get(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "error",
@@ -124,7 +142,7 @@ func (p apiManager) Get(c *gin.Context) {
 
 func (p apiManager) Delete(c *gin.Context) {
 	id := c.Param("id")
-	err := products.Delete(id)
+	err := getProductDBConn().Delete(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "error",
@@ -134,20 +152,5 @@ func (p apiManager) Delete(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "ok",
-	})
-}
-
-func (p apiManager) Search(c *gin.Context) {
-	list, err := products.Search()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "error",
-			"data":    err.Error(),
-		})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "ok",
-		"data":    list,
 	})
 }

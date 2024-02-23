@@ -3,21 +3,39 @@ package product
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"product-management/models"
-	mysql "product-management/sql"
 	"time"
 )
 
-func Register(product models.Product) error {
+type ProductService interface {
+	Register(product models.Product) error
+	Update(id int, updateFields map[string]interface{})
+	List(searchKeyword string, cursor int, limit int) (models.ProductList, error)
+	Get(id string) (models.Product, error)
+	Delete(id string)
+}
+
+type DBProductService struct {
+	DBConn *sql.DB
+}
+
+func NewDBProductService(dbConn *sql.DB) *DBProductService {
+	return &DBProductService{
+		DBConn: dbConn,
+	}
+}
+
+func (s *DBProductService) Register(product models.Product) error {
 	query := "INSERT INTO product (manager_id, category, price, `name`, description, `size`, expired_date) values (?, ?, ?, ?, ?, ?, ?)"
-	_, err := mysql.DBConn.Exec(query, product.ManagerID, product.Category, product.Price, product.Name, product.Description, product.Size, product.ExpiredDate)
+	_, err := s.DBConn.Exec(query, product.ManagerID, product.Category, product.Price, product.Name, product.Description, product.Size, product.ExpiredDate)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func Update(id int, updateFields map[string]interface{}) error {
+func (s *DBProductService) Update(id int, updateFields map[string]interface{}) error {
 	query := "UPDATE product SET "
 	var params []interface{}
 	var err error
@@ -33,28 +51,46 @@ func Update(id int, updateFields map[string]interface{}) error {
 	}
 	query = query[:len(query)-2] + " WHERE id = ?"
 	params = append(params, id)
-	_, err = mysql.DBConn.Exec(query, params...)
+	_, err = s.DBConn.Exec(query, params...)
 	return err
 }
 
-func List(cursor int, limit int) (models.ProductList, error) {
+func (s *DBProductService) List(searchKeyword string, cursor int, limit int) (models.ProductList, error) {
 	var products models.ProductList
 	var rows *sql.Rows
 	var err error
-	// 페이지네이션 - cursor based pagination 기반으로, 1page 당 기본 10개의 상품이 보이도록
-	if cursor > 0 {
-		// 첫번쨰 페이지가 아닐 경우
-		query := "SELECT id, manager_id, category, price, name, description, size, expired_date FROM product WHERE id < ? ORDER BY id DESC LIMIT ?"
-		rows, err = mysql.DBConn.Query(query, cursor, limit)
+	// 검색 (초성검색, 단어검색) - 예) 슈크림 라떼 → 검색가능한 키워드 : 슈크림, 크림, 라떼, ㅅㅋㄹ, ㄹㄸ
+	if searchKeyword != "" {
+		// 페이지네이션 - cursor based pagination 기반으로, 1page 당 기본 10개의 상품이 보이도록
+		if cursor > 0 {
+			// 첫번째 페이지가 아닐 경우
+			query := fmt.Sprintf("SELECT id, manager_id, category, price, name, description, size, expired_date FROM product WHERE id < %d AND name LIKE '%%%s%%' ORDER BY id DESC LIMIT %d", cursor, searchKeyword, limit)
+			rows, err = s.DBConn.Query(query)
+		} else {
+			// 첫번째 페이지일 경우
+			query := fmt.Sprintf("SELECT id, manager_id, category, price, name, description, size, expired_date FROM product WHERE name LIKE '%%%s%%' ORDER BY id DESC LIMIT %d", searchKeyword, limit)
+			rows, err = s.DBConn.Query(query)
+		}
 	} else {
-		// 첫번째 페이지일 경우
-		query := "SELECT id, manager_id, category, price, name, description, size, expired_date FROM product ORDER BY id DESC LIMIT ?"
-		rows, err = mysql.DBConn.Query(query, limit)
+		// 페이지네이션 - cursor based pagination 기반으로, 1page 당 기본 10개의 상품이 보이도록
+		if cursor > 0 {
+			// 첫번째 페이지가 아닐 경우
+			query := fmt.Sprintf("SELECT id, manager_id, category, price, name, description, size, expired_date FROM product WHERE id < %d ORDER BY id DESC LIMIT %d", cursor, limit)
+			rows, err = s.DBConn.Query(query)
+		} else {
+			// 첫번째 페이지일 경우
+			query := fmt.Sprintf("SELECT id, manager_id, category, price, name, description, size, expired_date FROM product ORDER BY id DESC LIMIT %d", limit)
+			rows, err = s.DBConn.Query(query)
+		}
 	}
 	if err != nil {
 		return models.ProductList{}, err
 	}
+
 	defer rows.Close()
+	if err = rows.Err(); err != nil {
+		return models.ProductList{}, err
+	}
 	for rows.Next() {
 		var product models.Product
 		if err := rows.Scan(&product.ID, &product.ManagerID, &product.Category, &product.Price, &product.Name, &product.Description, &product.Size, &product.ExpiredDate); err != nil {
@@ -62,19 +98,17 @@ func List(cursor int, limit int) (models.ProductList, error) {
 		}
 		products.Items = append(products.Items, product)
 	}
+
 	if len(products.Items) > 0 {
 		products.Metadata.Cursor = products.Items[len(products.Items) - 1].ID
-	}
-	if err = rows.Err(); err != nil {
-		return models.ProductList{}, err
 	}
 	return products, nil
 }
 
-func Get(id string) (models.Product, error) {
+func (s *DBProductService) Get(id string) (models.Product, error) {
 	var product models.Product
 	query := "SELECT id, manager_id, category, price, name, description, size, expired_date FROM product WHERE id = ?"
-	row := mysql.DBConn.QueryRow(query, id)
+	row := s.DBConn.QueryRow(query, id)
 	if err := row.Scan(&product.ID, &product.ManagerID, &product.Category, &product.Price, &product.Name, &product.Description, &product.Size, &product.ExpiredDate); err != nil {
 		if err == sql.ErrNoRows {
 			return models.Product{}, errors.New("Product not found")
@@ -84,9 +118,9 @@ func Get(id string) (models.Product, error) {
 	return product, nil
 }
 
-func Delete(id string) error {
+func (s *DBProductService) Delete(id string) error {
 	query := "DELETE FROM product WHERE id = ?"
-	result, err := mysql.DBConn.Exec(query, id)
+	result, err := s.DBConn.Exec(query, id)
 	if err != nil {
 		return err
 	}
@@ -98,27 +132,4 @@ func Delete(id string) error {
 		return errors.New("No rows affected. Product not found.")
 	}
 	return nil
-}
-
-// TODO: 검색 (초성검색, 단어검색) - 예) 슈크림 라떼 → 검색가능한 키워드 : 슈크림, 크림, 라떼, ㅅㅋㄹ, ㄹㄸ
-func Search() ([]models.Product, error) {
-	var products []models.Product
-	query := "SELECT id, manager_id, category, price, name, description, size, expired_date FROM product"
-	rows, err := mysql.DBConn.Query(query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	// TODO: 페이지네이션
-	for rows.Next() {
-		var product models.Product
-		if err := rows.Scan(&product.ID, &product.ManagerID, &product.Category, &product.Price, &product.Name, &product.Description, &product.Size, &product.ExpiredDate); err != nil {
-			return nil, err
-		}
-		products = append(products, product)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return products, nil
 }
