@@ -11,6 +11,7 @@ var (
 	DBConn *sql.DB
 )
 
+// TODO: 설정 값으로 빼기
 const (
 	host     = "localhost"
 	port     = 3306
@@ -60,7 +61,7 @@ func (c *dbConfig) GetDatabase() string {
 func ConnectToDB() {
 	var err error
 	config := newDBConfig()
-	mysqlInfo := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&loc=UTC",
+	mysqlInfo := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&loc=UTC&charset=utf8mb4",
 		config.GetUsername(), config.GetPassword(), config.GetHost(), config.GetPort(), config.GetDatabase())
 	DBConn, err = sql.Open("mysql", mysqlInfo)
 	if err != nil {

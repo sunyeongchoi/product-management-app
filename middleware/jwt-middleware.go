@@ -16,7 +16,7 @@ func TokenAuthMiddleware(c *gin.Context)  {
 		c.Abort()
 		return
 	}
-	claims, err := manager.GetClaims(jwtTokenCookie)
+	_, err = manager.GetClaims(jwtTokenCookie)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "error",
@@ -25,6 +25,4 @@ func TokenAuthMiddleware(c *gin.Context)  {
 		c.Abort()
 		return
 	}
-	c.Set("ID", claims.ID)
-	c.Set("PHONE", claims.Phone)
 }
