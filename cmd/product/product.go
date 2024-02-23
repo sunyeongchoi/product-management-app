@@ -1,7 +1,6 @@
 package product
 
 import (
-	"log"
 	"net/http"
 	"product-management/models"
 	products "product-management/sql/product"
@@ -19,7 +18,6 @@ func GetProductAPIManager() *apiManager {
 func (p apiManager) Register(c *gin.Context) {
 	var product models.Product
 	if err := c.ShouldBindJSON(&product); err != nil {
-		log.Println("err: ", err)
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
 	if product.Size != "small" && product.Size != "large" {
