@@ -1,13 +1,14 @@
 package manager
 
 import (
-	"github.com/golang-jwt/jwt/v4"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type Claims struct {
-	ID int `json:"id"`
-	Phone    string `json:"phone"`
+	ID    int    `json:"id"`
+	Phone string `json:"phone"`
 	jwt.RegisteredClaims
 }
 
@@ -18,7 +19,7 @@ func CreateToken(id int, phone string) (token string, err error) {
 	// TODO: time expiration 입력받도록 변경
 	tokenExpiration := now.Add(time.Duration(50000) * time.Second)
 	claims := &Claims{
-		ID: id,
+		ID:    id,
 		Phone: phone,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(tokenExpiration),

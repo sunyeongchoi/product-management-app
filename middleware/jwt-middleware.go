@@ -1,12 +1,14 @@
 package middleware
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
 	"product-management/cmd/manager"
+
+	"github.com/gin-gonic/gin"
 )
 
-func TokenAuthMiddleware(c *gin.Context)  {
+func TokenAuthMiddleware(c *gin.Context) {
 	jwtTokenCookie, err := c.Cookie("JWT_TOKEN")
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{

@@ -2,10 +2,11 @@ package manager
 
 import (
 	"net/http"
+	"sync"
+
 	"product-management/models"
 	"product-management/sql"
 	managers "product-management/sql/manager"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -18,7 +19,7 @@ func GetManagerAPIManager() *apiManager {
 }
 
 var (
-	once         sync.Once
+	once          sync.Once
 	managerDBConn *managers.DBManagerService
 )
 

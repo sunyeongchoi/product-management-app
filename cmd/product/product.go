@@ -2,11 +2,12 @@ package product
 
 import (
 	"net/http"
+	"strconv"
+	"sync"
+
 	"product-management/models"
 	"product-management/sql"
 	products "product-management/sql/product"
-	"strconv"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 )

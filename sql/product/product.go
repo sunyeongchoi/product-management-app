@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"product-management/models"
 	"time"
+
+	"product-management/models"
 )
 
 type ProductService interface {
@@ -100,7 +101,7 @@ func (s *DBProductService) List(searchKeyword string, cursor int, limit int) (mo
 	}
 
 	if len(products.Items) > 0 {
-		products.Metadata.Cursor = products.Items[len(products.Items) - 1].ID
+		products.Metadata.Cursor = products.Items[len(products.Items)-1].ID
 	}
 	return products, nil
 }
