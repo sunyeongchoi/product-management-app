@@ -36,13 +36,12 @@ func (p apiManager) Register(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "ok",
-		"data":    product,
 	})
 }
 
 func (p apiManager) Update(c *gin.Context) {
-	id := c.Param("id")
-	idStr, err := strconv.Atoi(id)
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "error",
@@ -54,7 +53,7 @@ func (p apiManager) Update(c *gin.Context) {
 	if err := c.ShouldBindJSON(&updateFields); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	err = products.Update(idStr, updateFields)
+	err = products.Update(id, updateFields)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "error",
@@ -68,7 +67,32 @@ func (p apiManager) Update(c *gin.Context) {
 }
 
 func (p apiManager) List(c *gin.Context) {
-	list, err := products.List()
+	cursorStr := c.Query("cursor")
+	limitStr := c.Query("limit")
+	var cursor = 0
+	var limit = 10 // limit 없으면 기본 10
+	var err error
+	if cursorStr != "" {
+		cursor, err = strconv.Atoi(cursorStr)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "error",
+				"data":    err.Error(),
+			})
+			return
+		}
+	}
+	if limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "error",
+				"data":    err.Error(),
+			})
+			return
+		}
+	}
+	productList, err := products.List(cursor, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "error",
@@ -78,7 +102,7 @@ func (p apiManager) List(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "ok",
-		"data":    list,
+		"data":    productList,
 	})
 }
 

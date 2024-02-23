@@ -37,24 +37,36 @@ func Update(id int, updateFields map[string]interface{}) error {
 	return err
 }
 
-func List() ([]models.Product, error) {
-	var products []models.Product
-	query := "SELECT id, manager_id, category, price, name, description, size, expired_date FROM product"
-	rows, err := mysql.DBConn.Query(query)
+func List(cursor int, limit int) (models.ProductList, error) {
+	var products models.ProductList
+	var rows *sql.Rows
+	var err error
+	// 페이지네이션 - cursor based pagination 기반으로, 1page 당 기본 10개의 상품이 보이도록
+	if cursor > 0 {
+		// 첫번쨰 페이지가 아닐 경우
+		query := "SELECT id, manager_id, category, price, name, description, size, expired_date FROM product WHERE id < ? ORDER BY id DESC LIMIT ?"
+		rows, err = mysql.DBConn.Query(query, cursor, limit)
+	} else {
+		// 첫번째 페이지일 경우
+		query := "SELECT id, manager_id, category, price, name, description, size, expired_date FROM product ORDER BY id DESC LIMIT ?"
+		rows, err = mysql.DBConn.Query(query, limit)
+	}
 	if err != nil {
-		return nil, err
+		return models.ProductList{}, err
 	}
 	defer rows.Close()
-	// TODO: 페이지네이션 - cursor based pagination 기반으로, 1page 당 10개의 상품이 보이도록
 	for rows.Next() {
 		var product models.Product
 		if err := rows.Scan(&product.ID, &product.ManagerID, &product.Category, &product.Price, &product.Name, &product.Description, &product.Size, &product.ExpiredDate); err != nil {
-			return nil, err
+			return models.ProductList{}, err
 		}
-		products = append(products, product)
+		products.Items = append(products.Items, product)
 	}
-	if err := rows.Err(); err != nil {
-		return nil, err
+	if len(products.Items) > 0 {
+		products.Metadata.Cursor = products.Items[len(products.Items) - 1].ID
+	}
+	if err = rows.Err(); err != nil {
+		return models.ProductList{}, err
 	}
 	return products, nil
 }
