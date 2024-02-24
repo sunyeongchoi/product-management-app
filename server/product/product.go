@@ -6,16 +6,14 @@ import (
 	"fmt"
 	"time"
 
-	"product-management/common"
-
-	"product-management/models"
+	"product-management/productmgm/common"
 )
 
 type ProductService interface {
-	Register(product models.Product) error
+	Register(product Product) error
 	Update(id int, updateFields map[string]interface{})
-	List(searchKeyword string, cursor int, limit int) (models.ProductList, error)
-	Get(id string) (models.Product, error)
+	List(searchKeyword string, cursor int, limit int) (ProductList, error)
+	Get(id string) (Product, error)
 	Delete(id string)
 }
 
@@ -29,7 +27,7 @@ func NewDBProductService(dbConn *sql.DB) *DBProductService {
 	}
 }
 
-func (s *DBProductService) Register(product models.Product) error {
+func (s *DBProductService) Register(product Product) error {
 	query := "INSERT INTO product (manager_id, category, price, `name`, description, `size`, expired_date) values (?, ?, ?, ?, ?, ?, ?)"
 	_, err := s.DBConn.Exec(query, product.ManagerID, product.Category, product.Price, product.Name, product.Description, product.Size, product.ExpiredDate)
 	if err != nil {
@@ -58,8 +56,8 @@ func (s *DBProductService) Update(id int, updateFields map[string]interface{}) e
 	return err
 }
 
-func (s *DBProductService) List(searchKeyword string, cursor int, limit int) (models.ProductList, error) {
-	var products models.ProductList
+func (s *DBProductService) List(searchKeyword string, cursor int, limit int) (ProductList, error) {
+	var products ProductList
 	var rows *sql.Rows
 	var err error
 	// 검색 (초성검색, 단어검색) - 예) 슈크림 라떼 → 검색가능한 키워드 : 슈크림, 크림, 라떼, ㅅㅋㄹ, ㄹㄸ
@@ -103,17 +101,17 @@ func (s *DBProductService) List(searchKeyword string, cursor int, limit int) (mo
 		}
 	}
 	if err != nil {
-		return models.ProductList{}, err
+		return ProductList{}, err
 	}
 
 	defer rows.Close()
 	if err = rows.Err(); err != nil {
-		return models.ProductList{}, err
+		return ProductList{}, err
 	}
 	for rows.Next() {
-		var product models.Product
+		var product Product
 		if err := rows.Scan(&product.ID, &product.ManagerID, &product.Category, &product.Price, &product.Name, &product.Description, &product.Size, &product.ExpiredDate); err != nil {
-			return models.ProductList{}, err
+			return ProductList{}, err
 		}
 		products.Items = append(products.Items, product)
 	}
@@ -124,15 +122,15 @@ func (s *DBProductService) List(searchKeyword string, cursor int, limit int) (mo
 	return products, nil
 }
 
-func (s *DBProductService) Get(id string) (models.Product, error) {
-	var product models.Product
+func (s *DBProductService) Get(id string) (Product, error) {
+	var product Product
 	query := "SELECT id, manager_id, category, price, name, description, size, expired_date FROM product WHERE id = ?"
 	row := s.DBConn.QueryRow(query, id)
 	if err := row.Scan(&product.ID, &product.ManagerID, &product.Category, &product.Price, &product.Name, &product.Description, &product.Size, &product.ExpiredDate); err != nil {
 		if err == sql.ErrNoRows {
-			return models.Product{}, errors.New("Product not found")
+			return Product{}, errors.New("Product not found")
 		}
-		return models.Product{}, err
+		return Product{}, err
 	}
 	return product, nil
 }

@@ -3,7 +3,7 @@ package common
 import (
 	"github.com/gin-gonic/gin"
 
-	"product-management/models"
+	manager2 "product-management/server/manager"
 )
 
 // 200 OK Example
@@ -32,7 +32,7 @@ type Meta struct {
 }
 
 type ManagerData struct {
-	Managers *models.Manager `json:"managers"`
+	Managers *manager2.Manager `json:"managers"`
 }
 
 type ProductData struct {
@@ -49,7 +49,7 @@ type ProductResponse struct {
 	ProductData *ProductData `json:"data"`
 }
 
-func NewManagerResponse(code int, message string, manager *models.Manager) *ManagerResponse {
+func NewManagerResponse(code int, message string, manager *manager2.Manager) *ManagerResponse {
 	if manager == nil {
 		return &ManagerResponse{
 			Meta: Meta{

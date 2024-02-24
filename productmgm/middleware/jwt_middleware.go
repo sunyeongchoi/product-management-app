@@ -3,9 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"product-management/common"
-
-	"product-management/cmd/manager"
+	"product-management/pkg/apiclient/manager"
+	"product-management/productmgm/common"
 
 	"github.com/gin-gonic/gin"
 )

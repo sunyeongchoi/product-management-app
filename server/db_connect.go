@@ -1,4 +1,4 @@
-package sql
+package server
 
 import (
 	"database/sql"
@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"product-management/common"
+	"product-management/productmgm/common"
 
 	_ "github.com/go-sql-driver/mysql"
 )

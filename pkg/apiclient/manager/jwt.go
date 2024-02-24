@@ -2,6 +2,7 @@ package manager
 
 import (
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -13,10 +14,15 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func CreateToken(id int, phone string) (token string, err error) {
+func CreateToken(id int, phone string) (token string, tokenExpiration time.Time, err error) {
+	// TODO: Refresh Token 고려 필요
 	now := time.Now()
-	// TODO: time expiration 입력받도록 변경
-	tokenExpiration := now.Add(time.Duration(50000) * time.Second)
+	timeDurationStr := os.Getenv("JWT_TIME_DURATION")
+	timeDuration, err := strconv.Atoi(timeDurationStr)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	tokenExpiration = now.Add(time.Duration(timeDuration) * time.Second)
 	claims := &Claims{
 		ID:    id,
 		Phone: phone,
@@ -27,9 +33,9 @@ func CreateToken(id int, phone string) (token string, err error) {
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	token, err = tokenClaims.SignedString([]byte(os.Getenv("JWT_KEY")))
 	if err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
-	return token, nil
+	return token, tokenExpiration, nil
 }
 
 func GetClaims(tokenString string) (*Claims, error) {

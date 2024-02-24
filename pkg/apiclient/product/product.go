@@ -5,11 +5,9 @@ import (
 	"strconv"
 	"sync"
 
-	"product-management/common"
-
-	"product-management/models"
-	"product-management/sql"
-	products "product-management/sql/product"
+	"product-management/productmgm/common"
+	"product-management/server"
+	"product-management/server/product"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,26 +20,26 @@ func GetProductAPIManager() *apiManager {
 
 var (
 	once          sync.Once
-	productDBConn *products.DBProductService
+	productDBConn *product.DBProductService
 )
 
-func getProductDBConn() *products.DBProductService {
+func getProductDBConn() *product.DBProductService {
 	once.Do(func() {
-		productDBConn = products.NewDBProductService(sql.DBConn)
+		productDBConn = product.NewDBProductService(server.DBConn)
 	})
 	return productDBConn
 }
 
 func (p apiManager) Register(c *gin.Context) {
-	var product models.Product
-	if err := c.ShouldBindJSON(&product); err != nil {
+	var prod product.Product
+	if err := c.ShouldBindJSON(&prod); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	if product.Size != common.SMALL && product.Size != common.LARGE {
+	if prod.Size != common.SMALL && prod.Size != common.LARGE {
 		common.NewProductResponse(http.StatusInternalServerError, "잘못된 상품 사이즈 입니다.", nil).GetProductResponse(c)
 		return
 	}
-	err := getProductDBConn().Register(product)
+	err := getProductDBConn().Register(prod)
 	if err != nil {
 		common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 		return
@@ -99,12 +97,12 @@ func (p apiManager) List(c *gin.Context) {
 
 func (p apiManager) Get(c *gin.Context) {
 	id := c.Param("id")
-	product, err := getProductDBConn().Get(id)
+	prod, err := getProductDBConn().Get(id)
 	if err != nil {
 		common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	common.NewProductResponse(http.StatusOK, common.OKAYMSG, product).GetProductResponse(c)
+	common.NewProductResponse(http.StatusOK, common.OKAYMSG, prod).GetProductResponse(c)
 }
 
 func (p apiManager) Delete(c *gin.Context) {

@@ -1,4 +1,4 @@
-package models
+package manager
 
 type Manager struct {
 	ID       int    `json:"id" db:"id"`

@@ -2,13 +2,11 @@ package manager
 
 import (
 	"database/sql"
-
-	"product-management/models"
 )
 
 type ManagerService interface {
-	SignUp(manager models.Manager) error
-	Get(phone string) (models.Manager, error)
+	SignUp(manager Manager) error
+	Get(phone string) (Manager, error)
 }
 
 type DBManagerService struct {
@@ -21,7 +19,7 @@ func NewDBManagerService(dbConn *sql.DB) *DBManagerService {
 	}
 }
 
-func (s *DBManagerService) SignUp(manager models.Manager) error {
+func (s *DBManagerService) SignUp(manager Manager) error {
 	query := "INSERT INTO manager (phone, password) values (?, ?)"
 	_, err := s.DBConn.Exec(query, manager.Phone, manager.Password)
 	if err != nil {
@@ -30,12 +28,12 @@ func (s *DBManagerService) SignUp(manager models.Manager) error {
 	return nil
 }
 
-func (s *DBManagerService) Get(phone string) (models.Manager, error) {
-	var manager models.Manager
+func (s *DBManagerService) Get(phone string) (Manager, error) {
+	var manager Manager
 	query := "SELECT id, phone, password FROM manager WHERE phone = ?"
 	row := s.DBConn.QueryRow(query, phone)
 	if err := row.Scan(&manager.ID, &manager.Phone, &manager.Password); err != nil {
-		return models.Manager{}, err
+		return Manager{}, err
 	}
 	return manager, nil
 }

@@ -43,6 +43,7 @@ func GetWhereClause(query string, column string) string {
 	var clause strings.Builder
 
 	for i, c := range query {
+		// TODO: index값 제대로 계산
 		charSize := utf8.RuneLen(c)
 		rangeValues := charMap[string(c)]
 		clause.WriteString(fmt.Sprintf("SUBSTRING(%s, %d, 1) >= '%s' AND SUBSTRING(%s, %d, 1) < '%s' AND ", column, (i/charSize)+1, rangeValues[0], column, (i/charSize)+1, rangeValues[1]))
