@@ -41,34 +41,52 @@ type ProductData struct {
 
 type ManagerResponse struct {
 	Meta        `json:"meta"`
-	ManagerData `json:"data"`
+	ManagerData *ManagerData `json:"data"`
 }
 
 type ProductResponse struct {
 	Meta        `json:"meta"`
-	ProductData `json:"data"`
+	ProductData *ProductData `json:"data"`
 }
 
-func NewManagerResponse(code int, message string, managers *models.Manager) *ManagerResponse {
+func NewManagerResponse(code int, message string, manager *models.Manager) *ManagerResponse {
+	if manager == nil {
+		return &ManagerResponse{
+			Meta: Meta{
+				Code:    code,
+				Message: message,
+			},
+			ManagerData: nil,
+		}
+	}
 	return &ManagerResponse{
 		Meta: Meta{
 			Code:    code,
 			Message: message,
 		},
-		ManagerData: ManagerData{
-			Managers: managers,
+		ManagerData: &ManagerData{
+			Managers: manager,
 		},
 	}
 }
 
-func NewProductResponse(code int, message string, productList interface{}) *ProductResponse {
+func NewProductResponse(code int, message string, product interface{}) *ProductResponse {
+	if product == nil {
+		return &ProductResponse{
+			Meta: Meta{
+				Code:    code,
+				Message: message,
+			},
+			ProductData: nil,
+		}
+	}
 	return &ProductResponse{
 		Meta: Meta{
 			Code:    code,
 			Message: message,
 		},
-		ProductData: ProductData{
-			Products: productList,
+		ProductData: &ProductData{
+			Products: product,
 		},
 	}
 }
