@@ -1,4 +1,4 @@
-package hangul
+package common
 
 import (
 	"fmt"

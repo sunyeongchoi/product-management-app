@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"product-management/common/hangul"
+	"product-management/common"
 
 	"product-management/models"
 )
@@ -64,10 +64,9 @@ func (s *DBProductService) List(searchKeyword string, cursor int, limit int) (mo
 	var err error
 	// 검색 (초성검색, 단어검색) - 예) 슈크림 라떼 → 검색가능한 키워드 : 슈크림, 크림, 라떼, ㅅㅋㄹ, ㄹㄸ
 	if searchKeyword != "" {
-		if hangul.IsConsonants(searchKeyword) {
+		if common.IsConsonants(searchKeyword) {
 			// 초성검색 예) 슈크림 라떼 → 검색가능한 키워드 : ㅅㅋㄹ, ㄹㄸ
-			whereStmt := hangul.GetWhereClause(searchKeyword, "name")
-			fmt.Println("whereStmt!!!", whereStmt)
+			whereStmt := common.GetWhereClause(searchKeyword, "name")
 			// 페이지네이션 - cursor based pagination 기반으로, 1page 당 기본 10개의 상품이 보이도록
 			if cursor > 0 {
 				// 첫번째 페이지가 아닐 경우
