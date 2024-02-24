@@ -1,6 +1,7 @@
-package manager
+package productmgm
 
 import (
+	"errors"
 	"os"
 	"strconv"
 	"time"
@@ -20,7 +21,7 @@ func CreateToken(id int, phone string) (token string, tokenExpiration time.Time,
 	timeDurationStr := os.Getenv("JWT_TIME_DURATION")
 	timeDuration, err := strconv.Atoi(timeDurationStr)
 	if err != nil {
-		return "", time.Time{}, err
+		return "", time.Time{}, errors.New("JWT_TIME_DURATION을 올바른 타입으로 설정해주세요.")
 	}
 	tokenExpiration = now.Add(time.Duration(timeDuration) * time.Second)
 	claims := &Claims{

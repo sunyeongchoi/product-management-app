@@ -122,7 +122,7 @@ func (s *DBProductService) List(searchKeyword string, cursor int, limit int) (Pr
 	return products, nil
 }
 
-func (s *DBProductService) Get(id string) (Product, error) {
+func (s *DBProductService) Get(id int) (Product, error) {
 	var product Product
 	query := "SELECT id, manager_id, category, price, name, description, size, expired_date FROM product WHERE id = ?"
 	row := s.DBConn.QueryRow(query, id)
@@ -135,7 +135,7 @@ func (s *DBProductService) Get(id string) (Product, error) {
 	return product, nil
 }
 
-func (s *DBProductService) Delete(id string) error {
+func (s *DBProductService) Delete(id int) error {
 	query := "DELETE FROM product WHERE id = ?"
 	result, err := s.DBConn.Exec(query, id)
 	if err != nil {
