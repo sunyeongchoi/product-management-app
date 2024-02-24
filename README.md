@@ -33,7 +33,8 @@ services:
         DB_PASSWORD=passwd\
         DB_DATABASE=productmgm\
         JWT_KEY=example\
-        JWT_TIME_DURATION=50000
+        JWT_TIME_DURATION=50000\
+        IS_PRODUCTION=true
     ```
 2. product-management-app 프로젝트의 루트 경로 이동
 3. Dockerfile 기반 빌드 명령어
