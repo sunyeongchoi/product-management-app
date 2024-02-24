@@ -3,13 +3,10 @@ package main
 import (
 	mysql "database/sql"
 	"log"
-
 	"product-management/pkg/apiclient/manager"
 	"product-management/pkg/apiclient/product"
 	"product-management/productmgm/middleware"
 	"product-management/server"
-
-	"github.com/joho/godotenv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,21 +30,22 @@ func setupRouter() *gin.Engine {
 }
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	// 로컬에서 돌릴 경우 주석 해제
+	//err := godotenv.Load(filepath.Join("./", ".env"))
+	//if err != nil {
+	//	log.Fatal("Error loading .env file", err)
+	//}
 	r := setupRouter()
 	server.ConnectToDB()
 
 	defer func(dbConn *mysql.DB) {
-		err = dbConn.Close()
+		err := dbConn.Close()
 		if err != nil {
 			log.Fatal("error from close database connection")
 		}
 	}(server.DBConn)
-	err = r.Run(":8080")
-	if err != nil {
+	runErr := r.Run(":8080")
+	if runErr != nil {
 		log.Fatal("error from run 8080 port")
 	}
 }
