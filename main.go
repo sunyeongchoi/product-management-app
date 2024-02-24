@@ -3,6 +3,11 @@ package main
 import (
 	mysql "database/sql"
 	"log"
+	"os"
+	"path/filepath"
+
+	"github.com/joho/godotenv"
+
 	"product-management/pkg/apiclient/manager"
 	"product-management/pkg/apiclient/product"
 	"product-management/productmgm/middleware"
@@ -30,11 +35,13 @@ func setupRouter() *gin.Engine {
 }
 
 func main() {
-	// 로컬에서 돌릴 경우 주석 해제
-	//err := godotenv.Load(filepath.Join("./", ".env"))
-	//if err != nil {
-	//	log.Fatal("Error loading .env file", err)
-	//}
+	if os.Getenv("IS_PRODUCTION") == "" {
+		err := godotenv.Load(filepath.Join("./", ".env"))
+		if err != nil {
+			log.Fatal("Error loading .env file", err)
+		}
+	}
+
 	r := setupRouter()
 	server.ConnectToDB()
 

@@ -31,13 +31,14 @@ FROM scratch
 COPY --from=builder /app/main .
 
 ## 환경변수 설정 (환경에 따라 값 설정 필요)
-ENV DB_HOST=172.20.0.2\
+ENV DB_HOST=localhost\
     DB_PORT=3306\
     DB_USERNAME=admin\
     DB_PASSWORD=passwd\
     DB_DATABASE=productmgm\
     JWT_KEY=example\
-    JWT_TIME_DURATION=50000
+    JWT_TIME_DURATION=50000\
+    IS_PRODUCTION=true
 
 ## 포트번호
 EXPOSE 8080
