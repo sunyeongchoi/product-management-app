@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"sync"
 
+	"product-management/common"
+
 	"product-management/models"
 	"product-management/sql"
 	managers "product-management/sql/manager"
@@ -38,35 +40,24 @@ func (m apiManager) SignUp(c *gin.Context) {
 	// 휴대폰번호 중복체크
 	_, err := getManagerDBConn().Get(manager.Phone)
 	if err == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "error",
-			"data":    "휴대폰번호 중복",
-		})
+		common.NewManagerResponse(http.StatusInternalServerError, "중복된 핸드폰번호입니다.", nil).GetManagerResponse(c)
 		return
 	}
+	// TODO: 휴대폰번호 정규식 체크
 	// 비밀번호 암호화
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(manager.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "error",
-			"data":    err.Error(),
-		})
+		common.NewManagerResponse(http.StatusInternalServerError, err.Error(), nil).GetManagerResponse(c)
 		return
 	}
 	manager.Password = string(hashedPassword)
 
 	err = getManagerDBConn().SignUp(manager)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "error",
-			"data":    err.Error(),
-		})
+		common.NewManagerResponse(http.StatusInternalServerError, err.Error(), nil).GetManagerResponse(c)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "ok",
-		"data":    manager,
-	})
+	common.NewManagerResponse(http.StatusOK, "ok", nil).GetManagerResponse(c)
 }
 
 func (m apiManager) Login(c *gin.Context) {
@@ -76,19 +67,13 @@ func (m apiManager) Login(c *gin.Context) {
 	}
 	managerFromDB, err := getManagerDBConn().Get(managerFromInput.Phone)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "error",
-			"data":    err.Error(),
-		})
+		common.NewManagerResponse(http.StatusInternalServerError, err.Error(), nil).GetManagerResponse(c)
 		return
 	}
 	// 비밀번호 검증
 	err = bcrypt.CompareHashAndPassword([]byte(managerFromDB.Password), []byte(managerFromInput.Password))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "error",
-			"data":    err.Error(),
-		})
+		common.NewManagerResponse(http.StatusInternalServerError, err.Error(), nil).GetManagerResponse(c)
 		return
 	}
 	// JWT 생성
@@ -97,15 +82,10 @@ func (m apiManager) Login(c *gin.Context) {
 		return
 	}
 	c.SetCookie("JWT_TOKEN", token, 50000, "/", "localhost:8080", false, true)
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "ok",
-	})
+	common.NewManagerResponse(http.StatusOK, "ok", nil).GetManagerResponse(c)
 }
 
 func (m apiManager) LogOut(c *gin.Context) {
 	c.SetCookie("JWT_TOKEN", "", -1, "/", "localhost:8080", false, true)
-	c.JSON(http.StatusOK, gin.H{
-		"message": "ok",
-	})
+	common.NewManagerResponse(http.StatusOK, "ok", nil).GetManagerResponse(c)
 }

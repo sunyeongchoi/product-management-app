@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"sync"
 
+	"product-management/common"
+
 	"product-management/models"
 	"product-management/sql"
 	products "product-management/sql/product"
@@ -36,32 +38,22 @@ func (p apiManager) Register(c *gin.Context) {
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
 	if product.Size != "small" && product.Size != "large" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "잘못된 상품 사이즈 입니다.",
-		})
+		common.NewProductResponse(http.StatusInternalServerError, "잘못된 상품 사이즈 입니다.", nil).GetProductResponse(c)
 		return
 	}
 	err := getProductDBConn().Register(product)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "error",
-			"data":    err.Error(),
-		})
+		common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "ok",
-	})
+	common.NewProductResponse(http.StatusOK, "ok", nil).GetProductResponse(c)
 }
 
 func (p apiManager) Update(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "error",
-			"data":    err.Error(),
-		})
+		common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 		return
 	}
 	var updateFields map[string]interface{}
@@ -70,15 +62,10 @@ func (p apiManager) Update(c *gin.Context) {
 	}
 	err = getProductDBConn().Update(id, updateFields)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "error",
-			"data":    err.Error(),
-		})
+		common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "ok",
-	})
+	common.NewProductResponse(http.StatusOK, "ok", nil).GetProductResponse(c)
 }
 
 func (p apiManager) List(c *gin.Context) {
@@ -91,67 +78,41 @@ func (p apiManager) List(c *gin.Context) {
 	if cursorStr != "" {
 		cursor, err = strconv.Atoi(cursorStr)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "error",
-				"data":    err.Error(),
-			})
+			common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 			return
 		}
 	}
 	if limitStr != "" {
 		limit, err = strconv.Atoi(limitStr)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "error",
-				"data":    err.Error(),
-			})
+			common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 			return
 		}
 	}
-	// Like 검색
 	productList, err := getProductDBConn().List(searchKeyword, cursor, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "error",
-			"data":    err.Error(),
-		})
+		common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	// TODO: 초성 검색
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "ok",
-		"data":    productList,
-	})
+	common.NewProductResponse(http.StatusOK, "ok", productList).GetProductResponse(c)
 }
 
 func (p apiManager) Get(c *gin.Context) {
 	id := c.Param("id")
 	product, err := getProductDBConn().Get(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "error",
-			"data":    err.Error(),
-		})
+		common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "ok",
-		"data":    product,
-	})
+	common.NewProductResponse(http.StatusOK, "ok", product).GetProductResponse(c)
 }
 
 func (p apiManager) Delete(c *gin.Context) {
 	id := c.Param("id")
 	err := getProductDBConn().Delete(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "error",
-			"data":    err.Error(),
-		})
+		common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "ok",
-	})
+	common.NewProductResponse(http.StatusOK, "ok", nil).GetProductResponse(c)
 }

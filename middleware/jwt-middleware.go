@@ -3,6 +3,8 @@ package middleware
 import (
 	"net/http"
 
+	"product-management/common"
+
 	"product-management/cmd/manager"
 
 	"github.com/gin-gonic/gin"
@@ -11,19 +13,13 @@ import (
 func TokenAuthMiddleware(c *gin.Context) {
 	jwtTokenCookie, err := c.Cookie("JWT_TOKEN")
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "error",
-			"data":    err.Error(),
-		})
+		common.NewProductResponse(http.StatusUnauthorized, err.Error(), nil).GetProductResponse(c)
 		c.Abort()
 		return
 	}
 	_, err = manager.GetClaims(jwtTokenCookie)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "error",
-			"data":    err.Error(),
-		})
+		common.NewProductResponse(http.StatusUnauthorized, err.Error(), nil).GetProductResponse(c)
 		c.Abort()
 		return
 	}
