@@ -11,7 +11,7 @@ import (
 )
 
 func TokenAuthMiddleware(c *gin.Context) {
-	jwtTokenCookie, err := c.Cookie("JWT_TOKEN")
+	jwtTokenCookie, err := c.Cookie(common.JWTTOKEN)
 	if err != nil {
 		common.NewProductResponse(http.StatusUnauthorized, err.Error(), nil).GetProductResponse(c)
 		c.Abort()

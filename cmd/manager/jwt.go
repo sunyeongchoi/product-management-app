@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -11,8 +12,6 @@ type Claims struct {
 	Phone string `json:"phone"`
 	jwt.RegisteredClaims
 }
-
-const jwtKey = "example"
 
 func CreateToken(id int, phone string) (token string, err error) {
 	now := time.Now()
@@ -26,7 +25,7 @@ func CreateToken(id int, phone string) (token string, err error) {
 		},
 	}
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	token, err = tokenClaims.SignedString([]byte(jwtKey))
+	token, err = tokenClaims.SignedString([]byte(os.Getenv("JWT_KEY")))
 	if err != nil {
 		return "", err
 	}
@@ -38,7 +37,7 @@ func GetClaims(tokenString string) (*Claims, error) {
 		tokenString,
 		&Claims{},
 		func(token *jwt.Token) (interface{}, error) {
-			return []byte(jwtKey), nil
+			return []byte(os.Getenv("JWT_KEY")), nil
 		},
 	)
 	if err != nil {

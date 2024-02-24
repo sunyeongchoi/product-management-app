@@ -37,7 +37,7 @@ func (p apiManager) Register(c *gin.Context) {
 	if err := c.ShouldBindJSON(&product); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	if product.Size != "small" && product.Size != "large" {
+	if product.Size != common.SMALL && product.Size != common.LARGE {
 		common.NewProductResponse(http.StatusInternalServerError, "잘못된 상품 사이즈 입니다.", nil).GetProductResponse(c)
 		return
 	}
@@ -46,7 +46,7 @@ func (p apiManager) Register(c *gin.Context) {
 		common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	common.NewProductResponse(http.StatusOK, "ok", nil).GetProductResponse(c)
+	common.NewProductResponse(http.StatusOK, common.OKAYMSG, nil).GetProductResponse(c)
 }
 
 func (p apiManager) Update(c *gin.Context) {
@@ -65,7 +65,7 @@ func (p apiManager) Update(c *gin.Context) {
 		common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	common.NewProductResponse(http.StatusOK, "ok", nil).GetProductResponse(c)
+	common.NewProductResponse(http.StatusOK, common.OKAYMSG, nil).GetProductResponse(c)
 }
 
 func (p apiManager) List(c *gin.Context) {
@@ -73,7 +73,7 @@ func (p apiManager) List(c *gin.Context) {
 	cursorStr := c.Query("cursor")
 	limitStr := c.Query("limit")
 	var cursor = 0
-	var limit = 10 // limit 없으면 기본 10
+	var limit = common.DEFAULT_PAGE_LIMIT
 	var err error
 	if cursorStr != "" {
 		cursor, err = strconv.Atoi(cursorStr)
@@ -94,7 +94,7 @@ func (p apiManager) List(c *gin.Context) {
 		common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	common.NewProductResponse(http.StatusOK, "ok", productList).GetProductResponse(c)
+	common.NewProductResponse(http.StatusOK, common.OKAYMSG, productList).GetProductResponse(c)
 }
 
 func (p apiManager) Get(c *gin.Context) {
@@ -104,7 +104,7 @@ func (p apiManager) Get(c *gin.Context) {
 		common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	common.NewProductResponse(http.StatusOK, "ok", product).GetProductResponse(c)
+	common.NewProductResponse(http.StatusOK, common.OKAYMSG, product).GetProductResponse(c)
 }
 
 func (p apiManager) Delete(c *gin.Context) {
@@ -114,5 +114,5 @@ func (p apiManager) Delete(c *gin.Context) {
 		common.NewProductResponse(http.StatusInternalServerError, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	common.NewProductResponse(http.StatusOK, "ok", nil).GetProductResponse(c)
+	common.NewProductResponse(http.StatusOK, common.OKAYMSG, nil).GetProductResponse(c)
 }

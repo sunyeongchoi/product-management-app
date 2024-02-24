@@ -2,12 +2,16 @@ package main
 
 import (
 	mysql "database/sql"
-	"github.com/gin-gonic/gin"
 	"log"
+
+	"github.com/joho/godotenv"
+
 	"product-management/cmd/manager"
 	"product-management/cmd/product"
 	"product-management/middleware"
 	"product-management/sql"
+
+	"github.com/gin-gonic/gin"
 )
 
 func setupRouter() *gin.Engine {
@@ -29,13 +33,21 @@ func setupRouter() *gin.Engine {
 }
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	r := setupRouter()
 	sql.ConnectToDB()
+
 	defer func(dbConn *mysql.DB) {
-		err := dbConn.Close()
+		err = dbConn.Close()
 		if err != nil {
 			log.Fatal("error from close database connection")
 		}
 	}(sql.DBConn)
-	r.Run(":8080")
+	err = r.Run(":8080")
+	if err != nil {
+		log.Fatal("error from run 8080 port")
+	}
 }

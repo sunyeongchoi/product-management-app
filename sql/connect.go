@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
+
+	"product-management/common"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -12,18 +15,9 @@ var (
 	DBConn *sql.DB
 )
 
-// TODO: 설정 값으로 빼기
-const (
-	host     = "localhost"
-	port     = 3306
-	username = "admin"
-	password = "passwd"
-	database = "productmgm"
-)
-
 type dbConfig struct {
 	host     string
-	port     int
+	port     string
 	username string
 	password string
 	database string
@@ -31,11 +25,11 @@ type dbConfig struct {
 
 func newDBConfig() *dbConfig {
 	return &dbConfig{
-		host:     host,
-		port:     port,
-		username: username,
-		password: password,
-		database: database,
+		host:     os.Getenv("DB_HOST"),
+		port:     os.Getenv("DB_PORT"),
+		username: os.Getenv("DB_USERNAME"),
+		password: os.Getenv("DB_PASSWORD"),
+		database: os.Getenv("DB_DATABASE"),
 	}
 }
 
@@ -43,7 +37,7 @@ func (c *dbConfig) GetHost() string {
 	return c.host
 }
 
-func (c *dbConfig) GetPort() int {
+func (c *dbConfig) GetPort() string {
 	return c.port
 }
 
@@ -62,9 +56,9 @@ func (c *dbConfig) GetDatabase() string {
 func ConnectToDB() {
 	var err error
 	config := newDBConfig()
-	mysqlInfo := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&loc=UTC&charset=utf8mb4",
+	mysqlInfo := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=UTC&charset=utf8mb4",
 		config.GetUsername(), config.GetPassword(), config.GetHost(), config.GetPort(), config.GetDatabase())
-	DBConn, err = sql.Open("mysql", mysqlInfo)
+	DBConn, err = sql.Open(common.DB_DRIVER, mysqlInfo)
 	if err != nil {
 		log.Fatal("failed to connect database", err)
 	}

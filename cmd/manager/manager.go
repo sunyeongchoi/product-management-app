@@ -57,7 +57,7 @@ func (m apiManager) SignUp(c *gin.Context) {
 		common.NewManagerResponse(http.StatusInternalServerError, err.Error(), nil).GetManagerResponse(c)
 		return
 	}
-	common.NewManagerResponse(http.StatusOK, "ok", nil).GetManagerResponse(c)
+	common.NewManagerResponse(http.StatusOK, common.OKAYMSG, nil).GetManagerResponse(c)
 }
 
 func (m apiManager) Login(c *gin.Context) {
@@ -81,11 +81,11 @@ func (m apiManager) Login(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	c.SetCookie("JWT_TOKEN", token, 50000, "/", "localhost:8080", false, true)
-	common.NewManagerResponse(http.StatusOK, "ok", nil).GetManagerResponse(c)
+	c.SetCookie(common.JWTTOKEN, token, 50000, "/", "localhost:8080", false, true)
+	common.NewManagerResponse(http.StatusOK, common.OKAYMSG, nil).GetManagerResponse(c)
 }
 
 func (m apiManager) LogOut(c *gin.Context) {
-	c.SetCookie("JWT_TOKEN", "", -1, "/", "localhost:8080", false, true)
-	common.NewManagerResponse(http.StatusOK, "ok", nil).GetManagerResponse(c)
+	c.SetCookie(common.JWTTOKEN, "", -1, "/", "localhost:8080", false, true)
+	common.NewManagerResponse(http.StatusOK, common.OKAYMSG, nil).GetManagerResponse(c)
 }
