@@ -31,7 +31,7 @@ FROM scratch
 COPY --from=builder /app/main .
 
 ## 환경변수 설정 (환경에 따라 값 설정 필요)
-ENV DB_HOST=localhost\
+ENV DB_HOST=172.30.1.15\
     DB_PORT=3306\
     DB_USERNAME=admin\
     DB_PASSWORD=passwd\
