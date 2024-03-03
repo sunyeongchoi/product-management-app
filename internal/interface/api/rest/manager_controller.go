@@ -1,11 +1,11 @@
 package rest
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"product-management/internal/application/interfaces"
 	"product-management/internal/interface/api/rest/request"
+	"product-management/internal/interface/api/rest/response"
 	"product-management/utils"
 )
 
@@ -28,17 +28,12 @@ func (mc *ManagerController) SignUp(c *gin.Context) {
 	if err := c.ShouldBindJSON(&createManagerRequest); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	managerCommand, err := createManagerRequest.ToCreateManagerCommand()
+	statusCode, err := mc.service.SignUp(&createManagerRequest)
 	if err != nil {
-		utils.NewManagerResponse(http.StatusBadRequest, err.Error(), nil).GetManagerResponse(c)
+		response.NewManagerResponse(statusCode, err.Error(), nil).GetManagerResponse(c)
 		return
 	}
-	statusCode, err := mc.service.SignUp(managerCommand)
-	if err != nil {
-		utils.NewManagerResponse(statusCode, err.Error(), nil).GetManagerResponse(c)
-		return
-	}
-	utils.NewManagerResponse(http.StatusOK, utils.OKAYMSG, nil).GetManagerResponse(c)
+	response.NewManagerResponse(http.StatusOK, utils.OKAYMSG, nil).GetManagerResponse(c)
 }
 
 func (mc *ManagerController) Login(c *gin.Context) {
@@ -46,22 +41,16 @@ func (mc *ManagerController) Login(c *gin.Context) {
 	if err := c.ShouldBindJSON(&createManagerRequest); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	managerCommand, err := createManagerRequest.ToCreateManagerCommand()
+	token, tokenExpiration, statusCode, err := mc.service.Login(&createManagerRequest)
 	if err != nil {
-		utils.NewManagerResponse(http.StatusBadRequest, err.Error(), nil).GetManagerResponse(c)
-		return
-	}
-	fmt.Println("managerCommand", managerCommand)
-	token, tokenExpiration, statusCode, err := mc.service.Login(managerCommand)
-	if err != nil {
-		utils.NewManagerResponse(statusCode, err.Error(), nil).GetManagerResponse(c)
+		response.NewManagerResponse(statusCode, err.Error(), nil).GetManagerResponse(c)
 		return
 	}
 	c.SetCookie(utils.JWTTOKEN, token, int(tokenExpiration.Unix()), "/", "", false, true)
-	utils.NewManagerResponse(http.StatusOK, utils.OKAYMSG, nil).GetManagerResponse(c)
+	response.NewManagerResponse(http.StatusOK, utils.OKAYMSG, nil).GetManagerResponse(c)
 }
 
 func (m *ManagerController) LogOut(c *gin.Context) {
 	c.SetCookie(utils.JWTTOKEN, "", -1, "/", "", false, true)
-	utils.NewManagerResponse(http.StatusOK, utils.OKAYMSG, nil).GetManagerResponse(c)
+	response.NewManagerResponse(http.StatusOK, utils.OKAYMSG, nil).GetManagerResponse(c)
 }

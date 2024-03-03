@@ -1,8 +1,8 @@
-package utils
+package response
 
 import (
 	"github.com/gin-gonic/gin"
-	"product-management/internal/application/command"
+	"product-management/internal/domain/entities"
 )
 
 // 200 OK Example
@@ -31,7 +31,7 @@ type Meta struct {
 }
 
 type ManagerData struct {
-	Managers *command.ManagerResult `json:"managers"`
+	Managers *entities.Manager `json:"managers"`
 }
 
 type ProductData struct {
@@ -48,7 +48,7 @@ type ProductResponse struct {
 	ProductData *ProductData `json:"data"`
 }
 
-func NewManagerResponse(code int, message string, manager *command.ManagerResult) *ManagerResponse {
+func NewManagerResponse(code int, message string, manager *entities.Manager) *ManagerResponse {
 	if manager == nil {
 		return &ManagerResponse{
 			Meta: Meta{

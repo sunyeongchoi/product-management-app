@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"product-management/internal/application/interfaces"
 	"product-management/internal/interface/api/rest/request"
-	"product-management/middleware"
+	"product-management/internal/interface/api/rest/response"
+	middleware2 "product-management/internal/interface/middleware"
 	"product-management/utils"
 	"strconv"
 )
@@ -19,7 +20,7 @@ func NewProductController(c *gin.Engine, service interfaces.ProductService) *Pro
 		service: service,
 	}
 	productGroup := c.Group("/management")
-	productGroup.Use(middleware.TokenAuthMiddleware)
+	productGroup.Use(middleware2.TokenAuthMiddleware)
 	{
 		productGroup.POST("/product", controller.Register)
 		productGroup.PATCH("/product/:id", controller.Update)
@@ -35,24 +36,19 @@ func (pc *ProductController) Register(c *gin.Context) {
 	if err := c.ShouldBindJSON(&createProductRequest); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	productCommand, err := createProductRequest.ToCreateProductCommand()
+	statusCode, err := pc.service.Register(&createProductRequest)
 	if err != nil {
-		utils.NewProductResponse(http.StatusBadRequest, err.Error(), nil).GetProductResponse(c)
+		response.NewProductResponse(statusCode, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	statusCode, err := pc.service.Register(productCommand)
-	if err != nil {
-		utils.NewProductResponse(statusCode, err.Error(), nil).GetProductResponse(c)
-		return
-	}
-	utils.NewProductResponse(http.StatusOK, utils.OKAYMSG, nil).GetProductResponse(c)
+	response.NewProductResponse(http.StatusOK, utils.OKAYMSG, nil).GetProductResponse(c)
 }
 
 func (pc *ProductController) Update(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		utils.NewProductResponse(http.StatusBadRequest, "id를 올바른 타입으로 입력해주세요.", nil).GetProductResponse(c)
+		response.NewProductResponse(http.StatusBadRequest, "id를 올바른 타입으로 입력해주세요.", nil).GetProductResponse(c)
 		return
 	}
 	var updateFields map[string]interface{}
@@ -61,10 +57,10 @@ func (pc *ProductController) Update(c *gin.Context) {
 	}
 	statusCode, err := pc.service.Update(id, updateFields)
 	if err != nil {
-		utils.NewProductResponse(statusCode, err.Error(), nil).GetProductResponse(c)
+		response.NewProductResponse(statusCode, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	utils.NewProductResponse(http.StatusOK, utils.OKAYMSG, nil).GetProductResponse(c)
+	response.NewProductResponse(http.StatusOK, utils.OKAYMSG, nil).GetProductResponse(c)
 }
 
 func (pc *ProductController) List(c *gin.Context) {
@@ -77,51 +73,51 @@ func (pc *ProductController) List(c *gin.Context) {
 	if cursorStr != "" {
 		cursor, err = strconv.Atoi(cursorStr)
 		if err != nil {
-			utils.NewProductResponse(http.StatusBadRequest, "cursor를 올바른 타입으로 입력해주세요.", nil).GetProductResponse(c)
+			response.NewProductResponse(http.StatusBadRequest, "cursor를 올바른 타입으로 입력해주세요.", nil).GetProductResponse(c)
 			return
 		}
 	}
 	if limitStr != "" {
 		limit, err = strconv.Atoi(limitStr)
 		if err != nil {
-			utils.NewProductResponse(http.StatusBadRequest, "limit을 올바른 타입으로 입력해주세요.", nil).GetProductResponse(c)
+			response.NewProductResponse(http.StatusBadRequest, "limit을 올바른 타입으로 입력해주세요.", nil).GetProductResponse(c)
 			return
 		}
 	}
 	productList, statusCode, err := pc.service.List(searchKeyword, cursor, limit)
 	if err != nil {
-		utils.NewProductResponse(statusCode, err.Error(), nil).GetProductResponse(c)
+		response.NewProductResponse(statusCode, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	utils.NewProductResponse(http.StatusOK, utils.OKAYMSG, productList).GetProductResponse(c)
+	response.NewProductResponse(http.StatusOK, utils.OKAYMSG, productList).GetProductResponse(c)
 }
 
 func (pc *ProductController) Get(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		utils.NewProductResponse(http.StatusBadRequest, "id를 올바른 타입으로 입력해주세요.", nil).GetProductResponse(c)
+		response.NewProductResponse(http.StatusBadRequest, "id를 올바른 타입으로 입력해주세요.", nil).GetProductResponse(c)
 		return
 	}
 	prod, statusCode, err := pc.service.Get(id)
 	if err != nil {
-		utils.NewProductResponse(statusCode, err.Error(), nil).GetProductResponse(c)
+		response.NewProductResponse(statusCode, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	utils.NewProductResponse(http.StatusOK, utils.OKAYMSG, prod).GetProductResponse(c)
+	response.NewProductResponse(http.StatusOK, utils.OKAYMSG, prod).GetProductResponse(c)
 }
 
 func (pc *ProductController) Delete(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		utils.NewProductResponse(http.StatusBadRequest, "id를 올바른 타입으로 입력해주세요.", nil).GetProductResponse(c)
+		response.NewProductResponse(http.StatusBadRequest, "id를 올바른 타입으로 입력해주세요.", nil).GetProductResponse(c)
 		return
 	}
 	statusCode, err := pc.service.Delete(id)
 	if err != nil {
-		utils.NewProductResponse(statusCode, err.Error(), nil).GetProductResponse(c)
+		response.NewProductResponse(statusCode, err.Error(), nil).GetProductResponse(c)
 		return
 	}
-	utils.NewProductResponse(http.StatusOK, utils.OKAYMSG, nil).GetProductResponse(c)
+	response.NewProductResponse(http.StatusOK, utils.OKAYMSG, nil).GetProductResponse(c)
 }

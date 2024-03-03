@@ -2,9 +2,9 @@ package services
 
 import (
 	"net/http"
-	"product-management/internal/application/command"
 	"product-management/internal/domain/entities"
 	"product-management/internal/domain/repositories"
+	"product-management/internal/interface/api/rest/request"
 )
 
 type ProductService struct {
@@ -15,7 +15,7 @@ func NewProductService(repository repositories.ProductRepository) *ProductServic
 	return &ProductService{repository: repository}
 }
 
-func (s *ProductService) Register(productCommand *command.CreateProductCommand) (statusCode int, err error) {
+func (s *ProductService) Register(productCommand *request.CreateProductRequest) (statusCode int, err error) {
 	var newProduct = entities.NewProduct(0, productCommand.ManagerID, productCommand.Category, productCommand.Price, productCommand.Name, productCommand.Description, productCommand.Size, productCommand.ExpiredDate)
 	validatedProduct, err := entities.NewValidatedProduct(newProduct)
 	if err != nil {

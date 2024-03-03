@@ -6,9 +6,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"os"
-	"product-management/internal/application/command"
 	"product-management/internal/domain/entities"
 	"product-management/internal/domain/repositories"
+	"product-management/internal/interface/api/rest/request"
 	"strconv"
 	"time"
 )
@@ -21,13 +21,13 @@ func NewManagerService(repository repositories.ManagerRepository) *ManagerServic
 	return &ManagerService{repository: repository}
 }
 
-func (m *ManagerService) SignUp(managerCommand *command.CreateManagerCommand) (statusCode int, err error) {
+func (m *ManagerService) SignUp(managerRequest *request.CreateManagerRequest) (statusCode int, err error) {
 	// 휴대폰번호 중복체크
-	_, err = m.repository.Get(managerCommand.Phone)
+	_, err = m.repository.Get(managerRequest.Phone)
 	if err == nil {
 		return http.StatusBadRequest, errors.New("중복된 핸드폰번호입니다.")
 	}
-	var newManager = entities.NewManager(0, managerCommand.Phone, managerCommand.Password)
+	var newManager = entities.NewManager(0, managerRequest.Phone, managerRequest.Password)
 	validatedManager, err := entities.NewValidatedManager(newManager)
 	if err != nil {
 		return http.StatusBadRequest, err
@@ -46,8 +46,8 @@ func (m *ManagerService) SignUp(managerCommand *command.CreateManagerCommand) (s
 	return http.StatusOK, nil
 }
 
-func (m *ManagerService) Login(managerCommand *command.CreateManagerCommand) (token string, tokenExpiration time.Time, statusCode int, err error) {
-	var newManager = entities.NewManager(0, managerCommand.Phone, managerCommand.Password)
+func (m *ManagerService) Login(managerRequest *request.CreateManagerRequest) (token string, tokenExpiration time.Time, statusCode int, err error) {
+	var newManager = entities.NewManager(0, managerRequest.Phone, managerRequest.Password)
 	validatedManager, err := entities.NewValidatedManager(newManager)
 	if err != nil {
 		return "", time.Time{}, http.StatusBadRequest, err
