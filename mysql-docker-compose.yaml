@@ -1,7 +1,7 @@
 version: "3"
 services:
   mysql:
-    image: mysql:5.7.38
+    image: mysql:5.7.8
     container_name: mysql5.7
     environment:
       MYSQL_DATABASE: productmgm

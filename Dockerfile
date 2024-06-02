@@ -15,7 +15,7 @@ ENV CGO_ENABLED=0 \
 WORKDIR /app
 
 ## 모듈 파일 복사
-COPY go.mod go.sum ./
+COPY go.mod go.sum cmd/productmgm/main.go ./
 RUN go mod download
 ## 소스 코드 복사
 COPY . ./
@@ -30,18 +30,18 @@ FROM scratch
 ## 이전 스테이지에서 빌드된 실행 파일 복사
 COPY --from=builder /app/main .
 
-## 환경변수 설정 (환경에 따라 값 설정 필요)
-ENV DB_HOST=172.30.1.15\
-    DB_PORT=3306\
-    DB_USERNAME=admin\
-    DB_PASSWORD=passwd\
-    DB_DATABASE=productmgm\
-    JWT_KEY=example\
-    JWT_TIME_DURATION=50000\
-    IS_PRODUCTION=true
+# ## 환경변수 설정 (환경에 따라 값 설정 필요)
+# ENV DB_HOST=172.30.1.15\
+#     DB_PORT=3306\
+#     DB_USERNAME=admin\
+#     DB_PASSWORD=passwd\
+#     DB_DATABASE=productmgm\
+#     JWT_KEY=example\
+#     JWT_TIME_DURATION=50000\
+#     IS_PRODUCTION=true
 
-## 포트번호
-EXPOSE 8080
+# ## 포트번호
+# EXPOSE 8080
 
-## 실행
-ENTRYPOINT ["./main"]
+# ## 실행
+# ENTRYPOINT ["./main"]
